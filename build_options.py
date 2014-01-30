@@ -78,11 +78,26 @@ int handler(void *user,const char *section,const char *name, const char *value){
 		if(0){
 		}""")
 	
+	#Scalar options
 	for set_name,options_set in scalar_options:
 		for name,set,ptype,default in options_set:
 			S.write(""" else if(MATCH("%s","%s")){
 				options->%s = %s;
 				}"""%(set,name,name,declaration_match(ptype)))
+
+	#Vector options
+	for set_name,options_set in vector_options:
+		for set,num_name,arr_name,num_elements,ptype,default in options_set:
+			
+			S.write(""" else if(MATCH("%s","%s")){
+				options->%s = %s;
+				}"""%(set,num_name,num_name,declaration_match(ptype)))
+
+			for i in range(num_elements):
+				S.write(""" else if(MATCH("%s","%s[%d]")){
+				options->%s[%d] = %s;
+				}"""%(set,arr_name,i,arr_name,i,declaration_match(ptype)))
+
 
 	S.write(""" else{
 		return 0;
@@ -110,7 +125,7 @@ typedef struct{
 
 	for set_name,options_set in vector_options:
 		for set,num_name,arr_name,num_elements,ptype,default in options_set:
-			S.write("""int %s;\n"""%num_name)
+			S.write("""const int %s = %d;\n"""%(num_name,num_elements))
 			S.write("""%s %s[%d];\n"""%(declaration_string(ptype),arr_name,num_elements))
 
 	S.write("""
