@@ -108,6 +108,11 @@ typedef struct{
 		for name,set,ptype,default in options_set:
 			S.write("""%s %s;\n"""%(declaration_string(ptype),name))
 
+	for set_name,options_set in vector_options:
+		for num_name,arr_name,num_elements,ptype,default in options_set:
+			S.write("""int %s;\n"""%num_name)
+			S.write("""%s %s[%d];\n"""%(declaration_string(ptype),arr_name,num_elements))
+
 	S.write("""
 } sys_options;
 
