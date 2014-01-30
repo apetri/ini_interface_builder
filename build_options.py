@@ -23,8 +23,8 @@ scalar_options=[
 
 #(Number_of_parameters_name,array_parameter_name,num_elements,Parameter_type,Default_values) (only numbers supported!!)
 vector_options_set_1=[
-("Nsi8","si8",3,float,0.798),
-("Nw","w",4,float,-1.0)
+("cosmovec","Nsi8","si8",3,float,0.798),
+("cosmovec","Nw","w",4,float,-1.0)
 ]
 
 vector_options=[
@@ -109,7 +109,7 @@ typedef struct{
 			S.write("""%s %s;\n"""%(declaration_string(ptype),name))
 
 	for set_name,options_set in vector_options:
-		for num_name,arr_name,num_elements,ptype,default in options_set:
+		for set,num_name,arr_name,num_elements,ptype,default in options_set:
 			S.write("""int %s;\n"""%num_name)
 			S.write("""%s %s[%d];\n"""%(declaration_string(ptype),arr_name,num_elements))
 
@@ -129,6 +129,7 @@ def generate_default_parameter_file(scalar_options,vector_options):
 	S=StringIO.StringIO()
 	S.write("""# Default options ini file generated from build_options.py #\n""")
 
+#scalar options
 	for set_name,options_set in scalar_options:
 		S.write("""
 ##########################
@@ -142,6 +143,23 @@ def generate_default_parameter_file(scalar_options,vector_options):
 
 		S.write("""\n""")
 
+#Vector options
+	for set_name,options_set in vector_options:
+		S.write("""
+##########################
+##########%s##############
+##########################
+[%s]
+
+"""%(set_name,options_set[0][0]))
+		for set,num_name,arr_name,num_elements,ptype,default in options_set:
+			S.write("""%s = %s\n""" %(num_name,ini_string(num_elements,int)))
+			for i in range(num_elements):
+				S.write("""%s[%d] = %s\n"""%(arr_name,i,ini_string(default,ptype)))
+
+		S.write("""\n""")
+
+	
 	S.seek(0)
 	return S.read()
 	
