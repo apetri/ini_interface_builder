@@ -32,8 +32,8 @@ scalar_options=[
 #Format is (Category,Number_of_parameters_name,array_parameter_name,num_elements,Parameter_type,Default_values) (only int,float supported)
 
 vector_options_set_1=[
-("cosmovec","Nsi8","si8",3,float,0.798),
-("cosmovec","Nh","h",4,float,0.7)
+("cosmovec","Nsi8","si8",3,float,[0.798,0.698,0.598]),
+("cosmovec","Nh","h",4,float,[0.5,0.6,0.7,0.8])
 ]
 
 vector_options=[
@@ -135,6 +135,7 @@ int handler(void *user,const char *section,const char *name, const char *value){
 				options->%s[%d] = %s;
 				}"""%(set,arr_name,i,arr_name,i,declaration_match(ptype)))
 				T.write("""    printf("%s[%d] = %s\\n",options->%s[%d]);\n"""%(arr_name,i,print_format(ptype),arr_name,i))
+			T.write("""    printf("\\n");\n""")
 
 
 	S.write(""" else{
@@ -212,7 +213,8 @@ def generate_default_parameter_file(scalar_options,vector_options):
 		for set,num_name,arr_name,num_elements,ptype,default in options_set:
 			S.write("""%s = %s\n""" %(num_name,ini_string(num_elements,int)))
 			for i in range(num_elements):
-				S.write("""%s[%d] = %s\n"""%(arr_name,i,ini_string(default,ptype)))
+				S.write("""%s[%d] = %s\n"""%(arr_name,i,ini_string(default[i],ptype)))
+			S.write("""\n""")
 
 		S.write("""\n""")
 
