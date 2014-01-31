@@ -2,26 +2,35 @@
 
 import StringIO
 
+############################################
+#########Type in your options here!!########
+############################################
+
 DEFAULT_OPTIONS_FILENAME = "default_options.ini"
 C_HANDLER_SOURCE = "options.c"
 C_OPTIONS_HEADER = "options.h"
 
-#(Parameter_name,category,Parameter_type,Default_value)
+#Scalar options (name = value)
+
+#Format is: (Category,Parameter_name,Parameter_type,Default_value)
 
 scalar_options_set_1=[
-("Omega_m","cosmo",float,0.26),
-("Omega_l","cosmo",float,0.74),
-("w","cosmo",float,-1.0),
-("n_scalar","cosmo",float,0.960),
-("sigma8","cosmo",float,0.798),
-("z_source","cosmo",float,1.0)
+("cosmo","Omega_m",float,0.26),
+("cosmo","Omega_l",float,0.74),
+("cosmo","w",float,-1.0),
+("cosmo","n_scalar",float,0.960),
+("cosmo","sigma8",float,0.798),
+("cosmo","z_source",float,1.0)
 ]
 
 scalar_options=[
 ("Cosmological parameters scalar",scalar_options_set_1)
 ]
 
-#(Number_of_parameters_name,array_parameter_name,num_elements,Parameter_type,Default_values) (only numbers supported!!)
+#Vector options (num_par = Size_of_the_vector; arr_name = Name_of_the_vector)
+
+#Format is (Category,Number_of_parameters_name,array_parameter_name,num_elements,Parameter_type,Default_values) (only int,float supported)
+
 vector_options_set_1=[
 ("cosmovec","Nsi8","si8",3,float,0.798),
 ("cosmovec","Nh","h",4,float,0.7)
@@ -97,9 +106,9 @@ int handler(void *user,const char *section,const char *name, const char *value){
 	#Scalar options
 	for set_name,options_set in scalar_options:
 		
-		T.write("""    printf("\\n[%s]\\n\\n");\n"""%options_set[0][1])
+		T.write("""    printf("\\n[%s]\\n\\n");\n"""%options_set[0][0])
 
-		for name,set,ptype,default in options_set:
+		for set,name,ptype,default in options_set:
 			S.write(""" else if(MATCH("%s","%s")){
 				options->%s = %s;
 				}"""%(set,name,name,declaration_match(ptype)))
@@ -148,7 +157,7 @@ typedef struct{
 """)
 
 	for set_name,options_set in scalar_options:
-		for name,set,ptype,default in options_set:
+		for set,name,ptype,default in options_set:
 			S.write("""%s %s;\n"""%(declaration_string(ptype),name))
 
 	for set_name,options_set in vector_options:
@@ -181,8 +190,8 @@ def generate_default_parameter_file(scalar_options,vector_options):
 ##########################
 [%s]
 
-"""%(set_name,options_set[0][1]))
-		for name,set,ptype,default in options_set:
+"""%(set_name,options_set[0][0]))
+		for set,name,ptype,default in options_set:
 			S.write("""%s = %s\n""" %(name,ini_string(default,ptype)))
 
 		S.write("""\n""")
