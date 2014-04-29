@@ -20,7 +20,8 @@ scalar_options_set_1=[
 ("cosmo","w",float,-1.0),
 ("cosmo","n_scalar",float,0.960),
 ("cosmo","sigma8",float,0.798),
-("cosmo","z_source",float,1.0)
+("cosmo","z_source",float,1.0),
+("cosmo","myname[128]",str,"Andrea Petri")
 ]
 
 scalar_options=[
@@ -54,7 +55,7 @@ def ini_string(value,ptype):
 
 def declaration_string(ptype):
 	if ptype==str:
-		return 'char*'
+		return 'char'
 	elif ptype==int:
 		return 'int'
 	elif ptype==float:
@@ -74,7 +75,7 @@ def print_format(ptype):
 
 def declaration_match(ptype):
 	if ptype==str:
-		return 'strdup(value)'
+		return 'value'
 	elif ptype==int:
 		return 'atoi(value)'
 	elif ptype==float:
@@ -113,10 +114,23 @@ int handler(void *user,const char *section,const char *name, const char *value){
 		T.write("""    printf("\\n[%s]\\n\\n");\n"""%options_set[0][0])
 
 		for set,name,ptype,default in options_set:
-			S.write(""" else if(MATCH("%s","%s")){
+
+			if(ptype==str):
+
+				name = name.split("[")[0]
+				
+				S.write(""" else if(MATCH("%s","%s")){
+				strcpy(options->%s,%s);
+				}"""%(set,name,name,declaration_match(ptype)))
+				T.write("""    printf("%s = %s\\n",options->%s);\n"""%(name,print_format(ptype),name))
+
+			
+			else:
+				
+				S.write(""" else if(MATCH("%s","%s")){
 				options->%s = %s;
 				}"""%(set,name,name,declaration_match(ptype)))
-			T.write("""    printf("%s = %s\\n",options->%s);\n"""%(name,print_format(ptype),name))
+				T.write("""    printf("%s = %s\\n",options->%s);\n"""%(name,print_format(ptype),name))
 
 	#Vector options
 	for set_name,options_set in vector_options:
@@ -197,6 +211,10 @@ def generate_default_parameter_file(scalar_options,vector_options):
 
 """%(set_name,options_set[0][0]))
 		for set,name,ptype,default in options_set:
+
+			if(ptype==str):
+				name = name.split("[")[0]
+
 			S.write("""%s = %s\n""" %(name,ini_string(default,ptype)))
 
 		S.write("""\n""")
